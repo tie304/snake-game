@@ -1,0 +1,17 @@
+.grid {
+  position: relative;
+
+
+  &__block {
+    position: absolute;
+    background-color: #000;
+    border: 1px solid #fff;
+     &--snake {
+      background-color: #fff;
+   }
+    &--food {
+      background-color: red;
+    }
+  }
+
+}
