@@ -7,24 +7,26 @@ class SnakeGame {
     scaledHeight:number;
     scaledWIdth: number;
     snakeLength: number;
+    dead: boolean;
     nodes: GridNode[];
-    snake: GridNode[];
     food: GridNode;
-    prevousPositions: GridNode[]
+    snakeHead: GridNode;
+    prevousPositions: GridNode[];
     currentKey: string;
     grid: HTMLElement;
 
 
     constructor() {
-        this.height = window.innerHeight
-        this.width = window.innerWidth
+        this.height = window.innerHeight;
+        this.width = window.innerWidth;
         this.scaledHeight = null;
         this.scaledWIdth = null;
-        this.grid = document.querySelector(".grid")
-        this.snake = [];
+        this.grid = document.querySelector(".grid");
+        this.snakeHead = null;
         this.nodes = [];
-        this.snakeLength = 0;
-        this.prevousPositions = []
+        this.dead = false;
+        this.snakeLength = 1;
+        this.prevousPositions = [];
         this.food = null;
         this.currentKey = null;
         this.init();
@@ -41,39 +43,78 @@ class SnakeGame {
         this.gameLoop();
     }
 
-
-
     gameLoop() {
-        setInterval(() => {
+        const loop = setInterval(() => {
+             if (this.dead) {
+                 clearInterval(loop)
+                this.resetGame();
+
+            }
             this.moveSnake(this.currentKey);
             this.detectFoodCollision();
-            console.log(this.snake)
-        }, 100)
+            console.log(this.dead)
+
+        }, 50)
+
     }
-    
+
     initSnake() {
         const snakeStart =  this.nodes[Math.floor(Math.random()*this.nodes.length)];
         snakeStart.nodeType = "snake";
-        this.snakeLength ++
-        this.snake.push(snakeStart)
+        this.snakeHead = snakeStart;
     }
 
     detectFoodCollision() {
-        if (this.snake[0] === this.food) {
-            this.increaseSnakeLength(this.food);
-            this.createFood()
+        if (this.snakeHead === this.food) {
+            this.increaseSnakeLength();
+            this.createFood();
         }
     }
 
-    increaseSnakeLength(node) {
-        this.snake.push(node)
+    detectSnakeCollision() {
+        this.prevousPositions.forEach((e) => {
+            if (e.id === this.snakeHead.id) {
+                this.dead = true
+            }
+        })
+    }
+
+    detectWallCollision(newHead) {
+
+        if (this.snakeHead.id % this.scaledWIdth == 0) {
+            this.dead = true
+        }
+        if (!newHead && this.currentKey) {
+            console.log("TOP DEAD")
+            this.dead = true
+        }
+    }
+
+    resetGame() {
+        this.height = window.innerHeight;
+        this.width = window.innerWidth;
+        this.scaledHeight = null;
+        this.scaledWIdth = null;
+        this.grid = document.querySelector(".grid");
+        this.snakeHead = null;
+        this.nodes = [];
+        this.dead = false;
+        this.snakeLength = 1;
+        this.prevousPositions = [];
+        this.food = null;
+        this.currentKey = null;
+        this.init();
+    }
+
+    increaseSnakeLength() {
+        this.snakeLength++
     }
 
     // recursive function that checks if snake and food are the same
     // if not, sets food
     createFood() {
         const node: GridNode = this.nodes[Math.floor(Math.random()*this.nodes.length)];
-        if (node === this.snake[0]) {
+        if (node === this.snakeHead) {
             this.createFood();
         }
 
@@ -82,53 +123,52 @@ class SnakeGame {
     }
 
     moveSnake(direction: string): void {
-        const head: GridNode = this.snake[0];
+        const head: GridNode = this.snakeHead;
         let newHead: any = null;
 
-        if (direction === "a") {
+        // move left (column wise)
+        if (direction === "a" || direction === "ArrowLeft") {
             newHead = this.nodes.filter((node) => node.id === (head.id - 1))[0];
-
         }
-        if (direction === "d") {
+        // move right (column wise)
+        if (direction === "d" ||  direction === "ArrowRight") {
             newHead = this.nodes.filter((node) => node.id === (head.id + 1))[0];
         }
-
-        if (direction === "w") {
+        // move up (row wise)
+        if (direction === "w" || direction === "ArrowUp") {
             newHead = this.nodes.filter((node) => node.id === (head.id - this.scaledWIdth))[0];
         }
-
-        if (direction === "s") {
+        // move down (row wise)
+        if (direction === "s" || direction === "ArrowDown") {
             newHead = this.nodes.filter((node) => node.id === (head.id + this.scaledWIdth))[0];
-
         }
-
+         this.detectSnakeCollision();
+         this.detectWallCollision(newHead);
+        // set node type
         newHead.nodeType = "snake";
-        this.snake.shift();
-        this.snake.unshift(newHead);
-        const prev = this.nodes.filter(node => node.id === head.id)[0]
-        this.nodes[this.nodes.indexOf(prev)].nodeType = "grid"
-
+        //creates the new head
+        this.snakeHead = newHead;
+        // get previous position
+        const prev = this.nodes.filter(node => node.id === head.id)[0];
+        // set node type to grid
+        this.nodes[this.nodes.indexOf(prev)].nodeType = "grid";
+        // reset all the previous positions
         this.prevousPositions.forEach((node) => {
             node.nodeType = "grid"
         });
-         this.prevousPositions.unshift(newHead);
 
-
-        if (this.prevousPositions.length === this.snake.length) {
+        // add new head to the array keeping track of previous positions.
+        this.prevousPositions.unshift(prev);
+        // as soon as the lengths = pop the last element from the previous snake positions
+        if (this.prevousPositions.length === this.snakeLength) {
             this.prevousPositions.pop();
         }
-
-        console.log(this.prevousPositions.length)
-
+        // loop over and set types to snake
         this.prevousPositions.forEach((node) => {
             node.nodeType = "snake"
-        })
-
-
-
-
+        });
     }
-
+    // creates grid that can fit any size screen with absolute positioning
     createGrid() {
         const div = 30;
         const gridWidth = Math.round(this.width /div);
@@ -154,8 +194,6 @@ class SnakeGame {
             }
             this.grid.appendChild(gridCube);
         }
-
-
 
     }
 

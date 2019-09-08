@@ -7,6 +7,7 @@
     "node-sass": "^4.12.0"
   },
   "devDependencies": {
+    "concurrently": "^4.1.2",
     "ts-loader": "^6.0.4",
     "typescript": "^3.5.3",
     "webpack": "^4.39.2",
@@ -14,9 +15,10 @@
     "webpack-dev-server": "^3.8.0"
   },
   "scripts": {
-    "compile:sass": "node-sass sass/main.scss style.css -w",
-    "ts": "tsc --target es5 js/grid --watch",
-     "start": "webpack-dev-server --mode development"
+    "compile:sass": "node-sass src/sass/main.scss style.css -w",
+    "ts": "tsc --target es5 src/js/grid --watch",
+    "start": "webpack-dev-server --mode development",
+    "build": "webpack --config webpack.config.js"
   },
   "author": "",
   "license": "ISC"

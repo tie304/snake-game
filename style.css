@@ -19,8 +19,7 @@ a {
   position: relative; }
   .grid__block {
     position: absolute;
-    background-color: #000;
-    border: 1px solid #fff; }
+    background-color: #000; }
     .grid__block--snake {
       background-color: #fff; }
     .grid__block--food {
